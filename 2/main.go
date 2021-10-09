@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"unicode"
 )
 
@@ -20,6 +22,8 @@ func Unpack(str string) (string, error) {
 				for j := 0; j < int(v-'0')-1; j++ {
 					result += string(str[i-1])
 				}
+			} else {
+				return "", errors.New("Two digits in a row - incorrect input")
 			}
 		} else {
 			result += string(v)
@@ -37,8 +41,11 @@ func Unpack(str string) (string, error) {
 }
 
 func main() {
-	test3 := "qwe/45ab"
+	test3 := "45"
 	test4 := "qwe//5"
-	Unpack(test3)
-	Unpack(test4)
+	res, err := Unpack(test3)
+	if err != nil {
+		fmt.Println(res, err)
+	}
+	fmt.Println(Unpack(test4))
 }
