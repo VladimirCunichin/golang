@@ -23,7 +23,7 @@ func Unpack(str string) (string, error) {
 					result += string(str[i-1])
 				}
 			} else {
-				return "", errors.New("Two digits in a row - incorrect input")
+				return "", errors.New("two digits in a row - incorrect input")
 			}
 		} else {
 			result += string(v)

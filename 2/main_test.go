@@ -24,7 +24,7 @@ func TestUnpack(t *testing.T) {
 	for _, test := range addTests {
 		output, err := Unpack(test.input)
 		if err != nil {
-			t.Fatalf("error is not nil")
+			t.Errorf("error is not %s for input %s", err, test.input)
 		}
 		assert.Equal(t, test.expected, output, "Unpacking "+test.input+" expected "+test.expected)
 	}
