@@ -33,6 +33,7 @@ func (l LinkedList) First() Item {
 	return *l.Head
 }
 
+//Len of the list
 func (l LinkedList) Len() int {
 	return l.Length
 }
@@ -70,6 +71,7 @@ func (l *LinkedList) PushFront(v interface{}) {
 	l.Length++
 }
 
+//Remove the Item that was passed  to the function
 func (l *LinkedList) Remove(i Item) {
 	if l.Length == 0 {
 		return
@@ -87,6 +89,7 @@ func (l *LinkedList) Remove(i Item) {
 	l.Length--
 }
 
+//Print the List
 func (l *LinkedList) Print() {
 	if l.Length > 0 {
 		ptr := l.Head
