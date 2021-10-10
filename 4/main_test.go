@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTop10(t *testing.T) {
+func TestLinkedList(t *testing.T) {
 	myList := NewLinkedList()
 	myList.PushFront(10)
 	assert.Equal(t, 1, myList.Len(), "PushFront, List len should be 1")
