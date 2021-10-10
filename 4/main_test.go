@@ -6,11 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type addTest struct {
-	input    string
-	expected []string
-}
-
 func TestTop10(t *testing.T) {
 	myList := NewLinkedList()
 	myList.PushFront(10)
