@@ -5,7 +5,6 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
-
 	"github.com/vladimircunichin/golang/calendar/internal/domain/entities"
 	"github.com/vladimircunichin/golang/calendar/internal/domain/interfaces"
 )
@@ -14,8 +13,8 @@ type EventUseCases struct {
 	EventStorage interfaces.EventStorage
 }
 
-func (usecase *EventUseCases) CreateEvent(ctx context.Context, owner, title, text string, startTime, endTime time.Time) (*entities.Event, error) {
-	event := &entities.Event{
+func (usecase *EventUseCases) CreateEvent(ctx context.Context, owner, title, text string, startTime, endTime time.Time) (entities.Event, error) {
+	event := entities.Event{
 		ID:        uuid.NewV4(),
 		Owner:     owner,
 		Title:     title,
@@ -25,7 +24,7 @@ func (usecase *EventUseCases) CreateEvent(ctx context.Context, owner, title, tex
 	}
 	err := usecase.EventStorage.SaveEvent(ctx, event)
 	if err != nil {
-		return nil, err
+		return entities.Event{}, err
 	}
 	return event, nil
 }

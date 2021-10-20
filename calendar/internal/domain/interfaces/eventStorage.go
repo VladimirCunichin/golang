@@ -8,10 +8,10 @@ import (
 )
 
 type EventStorage interface {
-	SaveEvent(ctx context.Context, event *entities.Event) error
-	GetEventByID(ctx context.Context, id string) (*entities.Event, error)
-	GetEvents(ctx context.Context) []*entities.Event
+	SaveEvent(ctx context.Context, event entities.Event) error
+	GetEventByID(ctx context.Context, id uuid.UUID) (entities.Event, error)
+	GetEvents(ctx context.Context) ([]entities.Event, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	Edit(ctx context.Context, id uuid.UUID, event entities.Event)
+	Edit(ctx context.Context, id uuid.UUID, event entities.Event) error
 	// GetEventByOwnerStartDate(ctx context.Context, owner string, startTime time.Time) []*entities.Event
 }
