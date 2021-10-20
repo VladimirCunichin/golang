@@ -14,7 +14,7 @@ type EventUseCases struct {
 	EventStorage interfaces.EventStorage
 }
 
-func (usecase *EventUseCases) CreateEvent(ctx context.Context, owner, title, text string, startTime, endTime *time.Time) (*entities.Event, error) {
+func (usecase *EventUseCases) CreateEvent(ctx context.Context, owner, title, text string, startTime, endTime time.Time) (*entities.Event, error) {
 	event := &entities.Event{
 		ID:        uuid.NewV4(),
 		Owner:     owner,

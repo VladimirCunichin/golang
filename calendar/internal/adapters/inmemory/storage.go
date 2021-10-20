@@ -1,4 +1,4 @@
-package storage
+package inmemory
 
 import (
 	"context"
@@ -10,14 +10,9 @@ import (
 	"github.com/vladimircunichin/golang/calendar/internal/domain/errors"
 )
 
-type EventUsecaseInterface interface {
-	CreateEvent(ctx context.Context, owner, title, text string, startTime, endTime *time.Time) (*entities.Event, error)
-}
-
 // Storage struct
 type Storage struct {
-	EventUsecase EventUsecaseInterface
-	events       map[uuid.UUID]entities.Event
+	events map[uuid.UUID]entities.Event
 }
 
 //New returns new storage
@@ -26,26 +21,24 @@ func New() *Storage {
 }
 
 // Add models to storage.
-func (storage *Storage) Add(event entities.Event) (uuid.UUID, error) {
-	// for _, e := range storage.events {
-	// 	if inTimeSpan(*e.StartTime, e.DateComplete, event.DateStarted) ||
-	// 		inTimeSpan(e.StartTime, e.DateComplete, event.DateComplete) ||
-	// 		inTimeSpan(event.StartTime, event.DateComplete, e.DateStarted) ||
-	// 		inTimeSpan(event.StartTime, event.DateComplete, e.DateComplete) {
-	// 		return uuid.UUID{}, errors.ErrDateBusy
-	// 	}
-	// }
+func (storage *Storage) SaveEvent(ctx context.Context, event entities.Event) error {
+	for _, e := range storage.events {
+		if inTimeSpan(e.StartTime, e.EndTime, event.StartTime) ||
+			inTimeSpan(e.StartTime, e.EndTime, event.EndTime) {
+			return errors.ErrDateBusy
+		}
+	}
 
 	_, ok := storage.events[event.ID]
 	if ok {
-		return uuid.UUID{}, errors.ErrEventIdExists
+		return errors.ErrEventIdExists
 	}
 	storage.events[event.ID] = event
-	return event.ID, nil
+	return nil
 }
 
 // Edit models data in data storage
-func (storage *Storage) Edit(id uuid.UUID, event entities.Event) error {
+func (storage *Storage) Edit(ctx context.Context, id uuid.UUID, event entities.Event) error {
 	_, ok := storage.events[id]
 	if !ok {
 		return errors.ErrNotFound
@@ -55,7 +48,7 @@ func (storage *Storage) Edit(id uuid.UUID, event entities.Event) error {
 }
 
 // GetEvents return all events
-func (storage *Storage) GetEvents() ([]entities.Event, error) {
+func (storage *Storage) GetEvents(ctx context.Context) ([]entities.Event, error) {
 	if len(storage.events) > 0 {
 		events := make([]entities.Event, 0, len(storage.events))
 		for _, e := range storage.events {
@@ -68,22 +61,22 @@ func (storage *Storage) GetEvents() ([]entities.Event, error) {
 	return []entities.Event{}, errors.ErrNotFound
 }
 
-//GetEventByID return models with ID
-func (storage *Storage) GetEventByID(id uuid.UUID) ([]entities.Event, error) {
+//GetEventByID return event by id
+func (storage *Storage) GetEventByID(ctx context.Context, id uuid.UUID) (entities.Event, error) {
 	e, ok := storage.events[id]
 	if !ok {
-		return []entities.Event{}, errors.ErrNotFound
+		return entities.Event{}, errors.ErrNotFound
 	}
-	return []entities.Event{e}, nil
+	return e, nil
 }
 
 //Delete will mark models as deleted
-func (storage *Storage) Delete(id uuid.UUID) error {
-	e, ok := storage.events[id]
+func (storage *Storage) Delete(ctx context.Context, id uuid.UUID) error {
+	_, ok := storage.events[id]
 	if !ok {
 		return errors.ErrNotFound
 	}
-	storage.events[id] = e
+	delete(storage.events, id)
 	return nil
 }
 

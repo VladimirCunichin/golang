@@ -11,6 +11,6 @@ type Event struct {
 	Owner     string
 	Title     string
 	Text      string
-	StartTime *time.Time
-	EndTime   *time.Time
+	StartTime time.Time
+	EndTime   time.Time
 }
