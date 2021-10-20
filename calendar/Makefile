@@ -1,2 +1,2 @@
 run:
-	go run cmd/main.go
+	go run cmd/calendar/main.go --config="config/config.yaml"
