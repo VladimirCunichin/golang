@@ -43,7 +43,8 @@ func (storage *Storage) Edit(ctx context.Context, id uuid.UUID, event entities.E
 	if !ok {
 		return errors.ErrNotFound
 	}
-	storage.events[event.ID] = event
+
+	storage.events[id] = event
 	return nil
 }
 
