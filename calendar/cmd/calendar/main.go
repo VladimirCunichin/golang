@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/spf13/viper"
+	"github.com/vladimircunichin/golang/calendar/config"
 	"github.com/vladimircunichin/golang/calendar/internal/adapters/inmemory"
 	"github.com/vladimircunichin/golang/calendar/internal/domain/usecases"
 	"github.com/vladimircunichin/golang/calendar/internal/logger"
@@ -25,22 +25,28 @@ func init() {
 
 func main() {
 	flag.Parse()
-	vi := viper.New()
-	vi.SetConfigFile(configFile)
-	vi.ReadInConfig()
-	logger.Init(vi.GetString("log_level"), vi.GetString("log_file"))
+
+	conf := config.GetConfigFromFile(configFile)
+
+	logger.Init(conf.Log.LogLevel, conf.Log.LogFile)
 
 	calendars := usecases.New(inmemory.New())
 	logger.Info("calendar was created")
 
-	calendars.SaveEvent(context.Background(), "owner", "title", "text", time.Date(2021, time.April, 10, 21, 34, 15, 0, time.UTC), time.Date(2021, time.April, 11, 21, 34, 15, 0, time.UTC))
+	_, err := calendars.SaveEvent(context.Background(), "owner", "title", "text", time.Date(2021, time.April, 10, 21, 34, 15, 0, time.UTC), time.Date(2021, time.April, 11, 21, 34, 15, 0, time.UTC))
+	if err != nil {
+		logger.Error("Save event error", "error", err)
+	}
 	editEvent, _ := calendars.GetEvents(context.Background())
-	calendars.Edit(context.Background(), editEvent[0].ID, "NewOwner", "NewTitle", "NewText", time.Date(2022, time.April, 10, 21, 34, 15, 0, time.UTC), time.Date(2023, time.April, 11, 21, 34, 15, 0, time.UTC))
-	_, err := calendars.GetEvents(context.Background())
+	err = calendars.Edit(context.Background(), editEvent[0].ID, "NewOwner", "NewTitle", "NewText", time.Date(2022, time.April, 10, 21, 34, 15, 0, time.UTC), time.Date(2023, time.April, 11, 21, 34, 15, 0, time.UTC))
+	if err != nil {
+		logger.Error("Edit event error", "error", err)
+	}
+	_, err = calendars.GetEvents(context.Background())
 	if err != nil {
 		logger.Error(err.Error())
 	}
-	InitServer(vi.GetString("http_listen.ip"), vi.GetString("http_listen.port"))
+	InitServer(conf.HttpListen.Ip, conf.HttpListen.Port)
 }
 
 func InitServer(listenIP, listenPort string) {

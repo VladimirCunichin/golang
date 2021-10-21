@@ -1,4 +1,12 @@
-http_listen.ip: "localhost"
-http_listen.port: 8080
-log_file: "logs/log.log"
-log_level: "info"
+http:
+  ip: "localhost"
+  port: 8080
+log:
+  log_file: logs/log.log
+  log_level: debug
+db:
+  user: postgres
+  password: Temp12xd34
+  port: 5432
+  host: localhost
+  database: calendardb
