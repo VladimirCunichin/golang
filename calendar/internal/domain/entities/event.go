@@ -2,12 +2,10 @@ package entities
 
 import (
 	"time"
-
-	uuid "github.com/satori/go.uuid"
 )
 
 type Event struct {
-	ID        uuid.UUID
+	ID        int
 	Owner     string
 	Title     string
 	Text      string

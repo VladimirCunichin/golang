@@ -6,47 +6,40 @@ import (
 	"testing"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
-	"github.com/vladimircunichin/golang/calendar/internal/domain/entities"
-	"github.com/vladimircunichin/golang/calendar/internal/domain/errors"
-)
-
-var (
-	id1 = uuid.NewV4()
-	id2 = uuid.NewV4()
-	id3 = uuid.NewV4()
-	id4 = uuid.NewV4()
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/domain/entities"
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/domain/errors"
+	"github.com/stretchr/testify/assert"
 )
 
 func prepareStorage() *Storage {
 	storage := New()
-	storage.events = map[uuid.UUID]entities.Event{
-		id1: {
-			ID:        id1,
+	storage.events = map[int]entities.Event{
+		1: {
+			ID:        1,
 			Owner:     "Vlad",
 			Title:     "task1",
 			Text:      "text1",
 			StartTime: time.Date(2021, time.April, 10, 21, 34, 15, 0, time.UTC),
 			EndTime:   time.Date(2021, time.April, 11, 21, 34, 15, 0, time.UTC),
 		},
-		id2: {
-			ID:        id2,
+		2: {
+			ID:        2,
 			Owner:     "xd",
 			Title:     "task2",
 			Text:      "text2",
 			StartTime: time.Date(2021, time.April, 10, 21, 34, 15, 0, time.UTC),
 			EndTime:   time.Date(2021, time.April, 12, 22, 34, 15, 0, time.UTC),
 		},
-		id3: {
-			ID:        id3,
+		3: {
+			ID:        3,
 			Owner:     "Vladimir",
 			Title:     "task11",
 			Text:      "text11",
 			StartTime: time.Date(2021, time.April, 11, 21, 34, 15, 0, time.UTC),
 			EndTime:   time.Date(2021, time.April, 13, 21, 34, 15, 0, time.UTC),
 		},
-		id4: {
-			ID:        id4,
+		4: {
+			ID:        4,
 			Owner:     "Test4",
 			Title:     "xdxdsadfd",
 			Text:      "asdfasdfasdf",
@@ -68,7 +61,7 @@ func TestNew(t *testing.T) {
 func TestStorage_Add(t *testing.T) {
 	storage := New()
 	newEvent := entities.Event{
-		ID:        uuid.NewV4(),
+		ID:        4,
 		Owner:     "Test4",
 		Title:     "xdxdsadfd",
 		Text:      "asdfasdfasdf",
@@ -79,15 +72,13 @@ func TestStorage_Add(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	if len(storage.events) != 1 {
-		t.Errorf("events size is not 1")
-	}
+	assert.Equal(t, len(storage.events), 1, "storage len should be 1")
 }
 
 func TestAddToNotEmptyStorage(t *testing.T) {
 	storage := prepareStorage()
 	newEvent := entities.Event{
-		ID:        uuid.NewV4(),
+		ID:        5,
 		Owner:     "Test5",
 		Title:     "xdxdsadfd",
 		Text:      "asdfasdfasdf",
@@ -98,15 +89,13 @@ func TestAddToNotEmptyStorage(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	if len(storage.events) != 5 {
-		t.Errorf("events size is not 5")
-	}
+	assert.Equal(t, len(storage.events), 5, "len storage should be 5")
 }
 
 func TestAddEventToUsedDate(t *testing.T) {
 	storage := prepareStorage()
 	newEvent := entities.Event{
-		ID:        uuid.NewV4(),
+		ID:        5,
 		Owner:     "Test4",
 		Title:     "xdxdsadfd",
 		Text:      "asdfasdfasdf",
@@ -114,51 +103,34 @@ func TestAddEventToUsedDate(t *testing.T) {
 		EndTime:   time.Date(2021, time.April, 16, 21, 34, 15, 0, time.UTC),
 	}
 	err := storage.SaveEvent(context.Background(), newEvent)
-	if err == nil {
-		t.Errorf("expected error: %s, but get nil", errors.ErrDateBusy)
-	} else if err != errors.ErrDateBusy {
-		t.Errorf("expected error: %s, get %s", errors.ErrDateBusy, err.Error())
-	}
+
+	assert.Equal(t, err, errors.ErrDateBusy, "error should be ErrDateBusy")
 }
 
 func TestStorage_Delete(t *testing.T) {
 	storage := prepareStorage()
-	keys := make([]uuid.UUID, 0, len(storage.events))
-	for u := range storage.events {
-		keys = append(keys, u)
-	}
 
-	err := storage.Delete(context.Background(), keys[1])
+	err := storage.Delete(context.Background(), 1)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	err = storage.Delete(context.Background(), keys[2])
+	err = storage.Delete(context.Background(), 2)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	if len(storage.events) != 2 {
-		t.Errorf("len should be 2, have %v", len(storage.events))
-	}
+	assert.Equal(t, len(storage.events), 2, "storage len should be 2")
 }
 
 func TestStorage_Delete_Wrong(t *testing.T) {
 	storage := prepareStorage()
-	err := storage.Delete(context.Background(), uuid.NewV4())
-	if err == nil {
-		t.Errorf("expected error: %s", errors.ErrNotFound)
-	} else if err != errors.ErrNotFound {
-		t.Errorf("expected error: %s, get : %s", errors.ErrNotFound, err.Error())
-	}
+	err := storage.Delete(context.Background(), 6)
+	assert.Equal(t, err, errors.ErrNotFound, "expected error not found")
 }
 
 func TestStorage_Edit(t *testing.T) {
 	storage := prepareStorage()
-	keys := make([]uuid.UUID, 0, len(storage.events))
-	for u := range storage.events {
-		keys = append(keys, u)
-	}
 
-	event, err := storage.GetEventByID(context.Background(), keys[0])
+	event, err := storage.GetEventByID(context.Background(), 1)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
@@ -167,7 +139,7 @@ func TestStorage_Edit(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	newEvent, err := storage.GetEventByID(context.Background(), keys[0])
+	newEvent, err := storage.GetEventByID(context.Background(), 1)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
@@ -188,32 +160,20 @@ func TestStorage_GetEvents(t *testing.T) {
 		t.Errorf("expected %d events get %d", len(storage.events), len(events))
 	}
 	for _, e := range events {
-		if storage.events[e.ID] != e {
-			t.Errorf("events that were retrieved are wrong")
-		}
+		assert.Equal(t, storage.events[e.ID], e, "GetEvents returned elements incorrect")
 	}
 }
 
 func TestStorage_GetEventByID_NotFound(t *testing.T) {
 	storage := prepareStorage()
-	_, err := storage.GetEventByID(context.Background(), uuid.NewV4())
-	if err == nil {
-		t.Errorf("expected error: %s, get nil", errors.ErrNotFound)
-	} else if err != errors.ErrNotFound {
-		t.Errorf("expected error: %s, get: %s", errors.ErrNotFound, err.Error())
-	}
+	_, err := storage.GetEventByID(context.Background(), 7)
+	assert.Equal(t, err, errors.ErrNotFound, "should get ErrNotFound")
 }
 
 func TestStorage_GetEvents_Empty(t *testing.T) {
 	storage := New()
-
 	_, err := storage.GetEvents(context.Background())
-	if err == nil {
-		t.Errorf("expected error: %s, get %s", errors.ErrNotFound, err)
-	}
-	if err != errors.ErrNotFound {
-		t.Errorf("expected error: %s, get: %s", errors.ErrNotFound, err.Error())
-	}
+	assert.Equal(t, err, errors.ErrNotFound, "should get ErrNotFound")
 }
 
 func Test_inTimeSpan(t *testing.T) {
@@ -247,8 +207,6 @@ func Test_inTimeSpan(t *testing.T) {
 		start, _ := time.Parse(newLayout, row.start)
 		end, _ := time.Parse(newLayout, row.end)
 		result := inTimeSpan(start, end, check)
-		if result != row.isTrue {
-			t.Errorf("get %t, expected %t on row: {%s, %s, %s, %t}", result, row.isTrue, row.start, row.end, row.check, row.isTrue)
-		}
+		assert.Equal(t, result, row.isTrue, "Wrong inTimeSpan result")
 	}
 }

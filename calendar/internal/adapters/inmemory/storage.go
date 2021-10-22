@@ -2,22 +2,22 @@ package inmemory
 
 import (
 	"context"
+	"sync"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
-
-	"github.com/vladimircunichin/golang/calendar/internal/domain/entities"
-	"github.com/vladimircunichin/golang/calendar/internal/domain/errors"
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/domain/entities"
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/domain/errors"
 )
 
 // Storage struct
 type Storage struct {
-	events map[uuid.UUID]entities.Event
+	mu     sync.Mutex
+	events map[int]entities.Event
 }
 
 //New returns new storage
 func New() *Storage {
-	return &Storage{events: make(map[uuid.UUID]entities.Event)}
+	return &Storage{events: make(map[int]entities.Event)}
 }
 
 // Add models to storage.
@@ -33,18 +33,21 @@ func (storage *Storage) SaveEvent(ctx context.Context, event entities.Event) err
 	if ok {
 		return errors.ErrEventIdExists
 	}
+	storage.mu.Lock()
 	storage.events[event.ID] = event
+	storage.mu.Unlock()
 	return nil
 }
 
 // Edit models data in data storage
-func (storage *Storage) Edit(ctx context.Context, id uuid.UUID, event entities.Event) error {
+func (storage *Storage) Edit(ctx context.Context, id int, event entities.Event) error {
 	_, ok := storage.events[id]
 	if !ok {
 		return errors.ErrNotFound
 	}
-
+	storage.mu.Lock()
 	storage.events[id] = event
+	storage.mu.Unlock()
 	return nil
 }
 
@@ -52,9 +55,11 @@ func (storage *Storage) Edit(ctx context.Context, id uuid.UUID, event entities.E
 func (storage *Storage) GetEvents(ctx context.Context) ([]entities.Event, error) {
 	if len(storage.events) > 0 {
 		events := make([]entities.Event, 0, len(storage.events))
+		storage.mu.Lock()
 		for _, e := range storage.events {
 			events = append(events, e)
 		}
+		storage.mu.Unlock()
 		if len(events) > 0 {
 			return events, nil
 		}
@@ -63,8 +68,10 @@ func (storage *Storage) GetEvents(ctx context.Context) ([]entities.Event, error)
 }
 
 //GetEventByID return event by id
-func (storage *Storage) GetEventByID(ctx context.Context, id uuid.UUID) (entities.Event, error) {
+func (storage *Storage) GetEventByID(ctx context.Context, id int) (entities.Event, error) {
+	storage.mu.Lock()
 	e, ok := storage.events[id]
+	storage.mu.Unlock()
 	if !ok {
 		return entities.Event{}, errors.ErrNotFound
 	}
@@ -72,12 +79,14 @@ func (storage *Storage) GetEventByID(ctx context.Context, id uuid.UUID) (entitie
 }
 
 //Delete will mark models as deleted
-func (storage *Storage) Delete(ctx context.Context, id uuid.UUID) error {
+func (storage *Storage) Delete(ctx context.Context, id int) error {
+	storage.mu.Lock()
 	_, ok := storage.events[id]
 	if !ok {
 		return errors.ErrNotFound
 	}
 	delete(storage.events, id)
+	storage.mu.Unlock()
 	return nil
 }
 

@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
-	"github.com/vladimircunichin/golang/calendar/internal/domain/entities"
-	"github.com/vladimircunichin/golang/calendar/internal/domain/interfaces"
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/domain/entities"
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/domain/interfaces"
 )
+
+var currentId int = 0
 
 type EventUseCases struct {
 	EventStorage interfaces.EventStorage
@@ -18,35 +19,35 @@ func New(storage interfaces.EventStorage) *EventUseCases {
 }
 
 func (usecase *EventUseCases) SaveEvent(ctx context.Context, owner, title, text string, startTime, endTime time.Time) (entities.Event, error) {
+	currentId++
+	newId := currentId
 	event := entities.Event{
-		ID:        uuid.NewV4(),
+		ID:        newId,
 		Owner:     owner,
 		Title:     title,
 		Text:      text,
 		StartTime: startTime,
 		EndTime:   endTime,
 	}
-
 	err := usecase.EventStorage.SaveEvent(ctx, event)
-
 	if err != nil {
 		return entities.Event{}, err
 	}
 	return event, nil
 }
 
-func (es *EventUseCases) GetEventByID(ctx context.Context, id uuid.UUID) (entities.Event, error) {
+func (es *EventUseCases) GetEventByID(ctx context.Context, id int) (entities.Event, error) {
 	return es.EventStorage.GetEventByID(ctx, id)
 }
 func (es *EventUseCases) GetEvents(ctx context.Context) ([]entities.Event, error) {
 	return es.EventStorage.GetEvents(ctx)
 }
-func (es *EventUseCases) Delete(ctx context.Context, id uuid.UUID) error {
+func (es *EventUseCases) Delete(ctx context.Context, id int) error {
 	return es.EventStorage.Delete(ctx, id)
 }
-func (es *EventUseCases) Edit(ctx context.Context, id uuid.UUID, owner, title, text string, startTime, endTime time.Time) error {
+func (es *EventUseCases) Edit(ctx context.Context, id int, owner, title, text string, startTime, endTime time.Time) error {
 	event := entities.Event{
-		ID:        uuid.NewV4(),
+		ID:        id,
 		Owner:     owner,
 		Title:     title,
 		Text:      text,

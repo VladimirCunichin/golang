@@ -3,8 +3,8 @@ package config
 import (
 	"strings"
 
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/logger"
 	"github.com/spf13/viper"
-	"github.com/vladimircunichin/golang/calendar/internal/logger"
 )
 
 type Config struct {

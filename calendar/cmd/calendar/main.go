@@ -10,11 +10,11 @@ import (
 	"syscall"
 	"time"
 
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/adapters/inmemory"
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/domain/config"
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/domain/usecases"
+	"bitbucket.org/VladimirCunichin/golang/src/master/calendar/internal/logger"
 	"github.com/gorilla/mux"
-	"github.com/vladimircunichin/golang/calendar/config"
-	"github.com/vladimircunichin/golang/calendar/internal/adapters/inmemory"
-	"github.com/vladimircunichin/golang/calendar/internal/domain/usecases"
-	"github.com/vladimircunichin/golang/calendar/internal/logger"
 )
 
 var configFile string
@@ -25,27 +25,10 @@ func init() {
 
 func main() {
 	flag.Parse()
-
 	conf := config.GetConfigFromFile(configFile)
-
 	logger.Init(conf.Log.LogLevel, conf.Log.LogFile)
-
-	calendars := usecases.New(inmemory.New())
+	_ = usecases.New(inmemory.New())
 	logger.Info("calendar was created")
-
-	_, err := calendars.SaveEvent(context.Background(), "owner", "title", "text", time.Date(2021, time.April, 10, 21, 34, 15, 0, time.UTC), time.Date(2021, time.April, 11, 21, 34, 15, 0, time.UTC))
-	if err != nil {
-		logger.Error("Save event error", "error", err)
-	}
-	editEvent, _ := calendars.GetEvents(context.Background())
-	err = calendars.Edit(context.Background(), editEvent[0].ID, "NewOwner", "NewTitle", "NewText", time.Date(2022, time.April, 10, 21, 34, 15, 0, time.UTC), time.Date(2023, time.April, 11, 21, 34, 15, 0, time.UTC))
-	if err != nil {
-		logger.Error("Edit event error", "error", err)
-	}
-	_, err = calendars.GetEvents(context.Background())
-	if err != nil {
-		logger.Error(err.Error())
-	}
 	InitServer(conf.HttpListen.Ip, conf.HttpListen.Port)
 }
 
